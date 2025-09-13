@@ -1,13 +1,8 @@
 // ====================== script.js (final with Function Calling) ======================
 
 // ---------------------- safety-fallbacks ----------------------
-if (typeof Sentiment === "undefined") {
-  console.warn("Sentiment library not found — using fallback neutral analyzer.");
-  // simple fallback implementation so code doesn't break
-  window.Sentiment = function () {
-    this.analyze = function (txt) { return { score: 0, comparative: 0 }; };
-  };
-}
+// The sentiment library is now loaded locally and provides a global analyzeSentiment function.
+// No fallback needed here as the function is expected to be available.
 
 // Note: logger.js should define AdminLog. If not loaded for some reason,
 // we will fail early in console — preferred fix is to load logger.js BEFORE this file.
@@ -26,14 +21,6 @@ const liveTranscript = document.getElementById("liveTranscript");
 const splash = document.getElementById("splash");
 const chatApp = document.getElementById("chatApp");
 
-// Replace with your own keys (keep server-side in production)
-const GOOGLE_CLIENT_ID = "58005689001-8gbri4rvbc2ho0snaolahd29ruqpm1e0.apps.googleusercontent.com";
-const GEMINI_API_KEY = "AIzaSyB94sRfzTg6Bfo_04fj9A14usXKQ3WYrFw";  // <<< REPLACE WITH YOUR GEMINI KEY
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
-
-// ⭐ ADD YOUR WEATHER API KEY HERE
-const WEATHER_API_KEY = "d5a0864ee3be965dfeaa1548bd28d73b"; // <<< REPLACE WITH YOUR OPENWEATHERMAP KEY
-
 let uploadedImage = null;
 let isVoiceOn = true;
 let USER_LOGO = "images/user.png"; // Default user avatar
@@ -48,18 +35,8 @@ function showNotification(text) {
 }
 
 // ---------------------- SENTIMENT ----------------------
-const sentiment = new Sentiment();
-function analyzeSentiment(message) {
-  try {
-    const result = sentiment.analyze(message || "");
-    if (result.score < 0) return "negative";
-    if (result.score > 0) return "positive";
-    return "neutral";
-  } catch (e) {
-    console.warn("Sentiment analyze failed:", e);
-    return "neutral";
-  }
-}
+// The analyzeSentiment function is now provided by js/sentiment.min.js
+// function analyzeSentiment(message) { ... } is now external
 
 // ---------------------- UTIL ----------------------
 function scrollToBottom() {
@@ -68,7 +45,6 @@ function scrollToBottom() {
 }
 
 // ---------------------- MESSAGES ----------------------
-// ⭐ MODIFIED to use innerHTML to support rendering HTML cards
 function addMessage(content, sender, img = null) {
   if (!messagesContainer) return;
   const msgDiv = document.createElement("div");
@@ -83,7 +59,6 @@ function addMessage(content, sender, img = null) {
   bubble.classList.add("message-bubble", sender + "-bubble");
   
   if (content) {
-      // Use innerHTML to render HTML content like the weather card
       bubble.innerHTML = content;
   }
 
@@ -183,27 +158,25 @@ async function translateText(text, targetLang, sourceLang = "auto") {
   }
 }
 
-// ⭐ NEW: FUNCTION TO GET WEATHER DATA
+// ---------------------- WEATHER FUNCTION ----------------------
 async function getWeather(city) {
-    if (!WEATHER_API_KEY || WEATHER_API_KEY === "YOUR_OPENWEATHERMAP_API_KEY") {
-        addMessage("⚠️ Weather feature is not configured. Please add an API key in script.js.", "ai");
-        return;
+  try {
+    const response = await fetch('/api/weather', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ city })
+    });
+    if (!response.ok) {
+      throw new Error('City not found.');
     }
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}&units=metric`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('City not found.');
-        }
-        const data = await response.json();
-        displayWeatherCard(data);
-    } catch (error) {
-        addMessage(`😥 Sorry, I couldn't get the weather for ${city}. Please check the city name.`, "ai");
-        console.error("Weather API error:", error);
-    }
+    const data = await response.json();
+    displayWeatherCard(data);
+  } catch (error) {
+    addMessage(`😥 Sorry, I couldn't get the weather for ${city}. Please check the city name.`, "ai");
+    console.error("Weather API error:", error);
+  }
 }
 
-// ⭐ NEW: FUNCTION TO DISPLAY THE WEATHER CARD
 function displayWeatherCard(data) {
     const { name, main, weather, wind } = data;
     const iconUrl = `https://openweathermap.org/img/wn/${weather[0].icon}@2x.png`;
@@ -226,29 +199,35 @@ function displayWeatherCard(data) {
     speakText(`The current weather in ${name} is ${Math.round(main.temp)} degrees Celsius with ${weather[0].description}.`);
 }
 
-// ---------------------- CALL GEMINI ----------------------
+// ---------------------- GEMINI API CALL ----------------------
 async function sendMessageToGemini(text, img) {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-    return "🛠 (Demo reply) Replace GEMINI_API_KEY to get real model responses.";
-  }
   try {
     const parts = [{ text }];
     if (img) {
       parts.push({ inline_data: { mime_type: "image/png", data: img.split(",")[1] } });
     }
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts }] })
     });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData.error && errorData.error.includes('API key not configured')) {
+        return "⚠️ Chat functionality is not available. Please configure the Gemini API key in your environment variables.";
+      }
+      return `⚠️ API Error: ${errorData.error || 'Unknown error'}`;
+    }
+    
     const data = await response.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No reply from model.";
   } catch (err) {
-    return "⚠️ Error: " + err.message;
+    return "⚠️ Network Error: " + err.message;
   }
 }
 
-// ---------------------- HANDLE SEND (Main Logic) ----------------------
+// ---------------------- MAIN SEND LOGIC ----------------------
 async function handleSend() {
   const text = (userInput?.value || "").trim();
   const selectedLang = langSelect.value || "en-US";
@@ -258,7 +237,7 @@ async function handleSend() {
 
   if (text) {
     const mood = analyzeSentiment(text);
-    if (mood === "negative") {
+    if (mood.sentiment === "negative") {
       showNotification("😟 You seem upset. Do you want to connect with a human?");
     }
   }
@@ -271,25 +250,20 @@ async function handleSend() {
 
   if (userInput) userInput.value = "";
   
-  // --- ⭐ FUNCTION CALLING LOGIC ---
   const lowerCaseText = text.toLowerCase();
-  // Simple keyword detection for the demo
   if ((lowerCaseText.includes("weather in") || lowerCaseText.startsWith("weather of") || lowerCaseText.includes("weather for"))) {
-      // Extract the city name. This is a simple parser.
       const city = text.split(/in |of |for /i)[1]?.trim();
       if (city) {
           showTypingIndicator();
-          // We don't need to translate for this function call
           await getWeather(city);
           removeTypingIndicator();
           uploadedImage = null;
-          return; // Stop here after handling the function call
+          return;
       }
   }
 
   showTypingIndicator();
 
-  // ========= TWO-WAY TRANSLATION LOGIC FOR GEMINI =========
   let textForModel = text;
   if (text && selectedLang !== 'en-US') {
       textForModel = await translateText(text, 'en');
@@ -314,7 +288,7 @@ async function handleSend() {
   uploadedImage = null;
 }
 
-// ---------------------- EVENTS & UI ----------------------
+// ---------------------- EVENT LISTENERS ----------------------
 sendBtn?.addEventListener("click", handleSend);
 userInput?.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSend(); });
 imgBtn?.addEventListener("click", () => imgUpload?.click());
@@ -417,17 +391,74 @@ function decodeJwt(token) {
     )
   );
 }
-function initGoogle() {
-  if (!window.google?.accounts?.id) return;
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleCredentialResponse,
-    auto_select: false
-  });
-  google.accounts.id.renderButton(
-    document.getElementById("googleSignIn"),
-    { theme: "outline", size: "medium", shape: "pill", width: "200" }
-  );
+async function initGoogle() {
+  if (!window.google?.accounts?.id) {
+    console.warn('Google Identity Services not loaded. Showing fallback login button.');
+    showFallbackLoginButton();
+    return;
+  }
+  
+  try {
+    // Fetch configuration from server
+    const response = await fetch('/api/config');
+    const config = await response.json();
+    
+    // Check if we have a valid client ID
+    if (config.isGoogleAuthEnabled) {
+      google.accounts.id.initialize({
+        client_id: config.googleClientId,
+        callback: handleCredentialResponse,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("googleSignIn"),
+        { theme: "outline", size: "medium", shape: "pill", width: "200" }
+      );
+    } else {
+      showFallbackLoginButton();
+    }
+    
+    // Show warning if API keys are not configured
+    if (!config.hasGeminiKey) {
+      showNotification("⚠️ Gemini API key not configured. Chat functionality will be limited.");
+    }
+    if (!config.hasWeatherKey) {
+      showNotification("⚠️ Weather API key not configured. Weather queries will not work.");
+    }
+  } catch (error) {
+    console.error('Failed to load configuration:', error);
+    showFallbackLoginButton();
+  }
+}
+
+function showFallbackLoginButton() {
+  const googleSignInDiv = document.getElementById("googleSignIn");
+  if (!googleSignInDiv) return;
+  
+  googleSignInDiv.innerHTML = `
+    <button class="fallback-login-btn" onclick="handleFallbackLogin()">
+      <i class="material-icons" style="font-size: 18px;">login</i>
+      Sign In
+    </button>
+  `;
+}
+
+function handleFallbackLogin() {
+  showNotification("🔧 Google OAuth is not configured. Please set up your Google OAuth Client ID in the .env file. See OAUTH_SETUP.md for instructions.");
+  
+  // For demo purposes, simulate a login
+  const demoUser = {
+    name: "Demo User",
+    email: "demo@example.com",
+    picture: "images/user.png"
+  };
+  
+  document.getElementById("status").textContent = `Hi, ${demoUser.name}`;
+  USER_LOGO = demoUser.picture;
+  document.getElementById("googleSignIn").classList.add("is-hidden");
+  document.getElementById("logoutBtn").classList.remove("is-hidden");
+  localStorage.setItem("googleUser", JSON.stringify(demoUser));
+  addMessage(`Welcome ${demoUser.name}! 👋 (Demo Mode)`, "ai");
 }
 function handleCredentialResponse(response) {
   const user = decodeJwt(response.credential);
@@ -450,6 +481,7 @@ function restoreGoogleUser() {
     document.getElementById("logoutBtn").classList.remove("is-hidden");
   } catch (e) { console.warn(e); }
 }
+
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
   localStorage.removeItem("googleUser");
   document.getElementById("status").textContent = "Online";
