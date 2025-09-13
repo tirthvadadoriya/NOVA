@@ -5,89 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>N.O.V.A</title>
 
-  <!-- Fonts & CSS -->
+  <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link 
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" 
-    rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 
   <!-- Google Identity Service -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- ✅ Sentiment Library (must load before script.js) -->
+  <!-- Sentiment Library -->
   <script src="https://unpkg.com/sentiment@5.0.2/build/sentiment.min.js"></script>
 </head>
 <body>
-  <!-- Splash -->
-  <div id="splash">
-    <img src="NOVA AI.png" alt="AI Logo">
-    <h1>Welcome to NOVA</h1>
+
+  <div id="splash" class="splash">
+    <img src="images/NOVA AI.png" alt="N.O.V.A AI Logo">
+    <h1>Welcome to N.O.V.A</h1>
   </div>
 
-  <!-- Chat App -->
-  <div class="chat-window" id="chatApp" style="display: none;">
-    <!-- Header -->
-    <div class="chat-header">
-      <img src="NOVA AI.png" class="logo" alt="Chatbot Logo">
-      <div class="title">
+  <main id="chatApp" class="chat-window is-hidden">
+    <header class="chat-header">
+      <img src="images/NOVA AI.png" class="chat-header__logo" alt="N.O.V.A AI Assistant">
+      <div class="chat-header__title">
         <h2>AI Assistant</h2>
-        <p id="status">Online</p>
+        <p id="status" class="chat-header__status">Online</p>
       </div>
-
-      <!-- Controls -->
-      <div class="controls">
-        <select id="langSelect" aria-label="Select Language">
-          <option value="en-US">English</option>
-          <option value="hi-IN">Hindi</option>
-          <option value="gu-IN">Gujarati</option>
-        </select>
-        <button id="voiceToggle" class="icon-btn" aria-label="Toggle Voice">🔊</button>
-        <button id="themeToggle" title="Toggle Theme">🌙</button>
-
-        <!-- Google Sign-In -->
+      <div class="chat-header__controls">
+        <div class="language-selector">
+          <label for="langSelect">Language:</label>
+          <select id="langSelect" aria-label="Select Language">
+            <option value="en-US">English</option>
+            <option value="hi-IN">Hindi</option>
+            <option value="gu-IN">Gujarati</option>
+          </select>
+        </div>
+        <button id="voiceToggle" class="icon-btn" aria-label="Toggle Voice Output">
+          <i class="material-icons">volume_up</i>
+        </button>
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle Dark/Light Theme">
+          <i class="material-icons">brightness_4</i>
+        </button>
         <div id="googleSignIn"></div>
-        <button id="logoutBtn" style="display: none;" class="icon-btn">Logout</button>
-        <a href="admin.html" target="_blank" class="admin-link">Admin</a>
+        <button id="logoutBtn" class="icon-btn is-hidden" aria-label="Logout">
+            <i class="material-icons">logout</i>
+        </button>
+        <a href="admin.html" target="_blank" class="admin-link" aria-label="Open Admin Dashboard">
+            <i class="material-icons">admin_panel_settings</i>
+        </a>
       </div>
-    </div>
+    </header>
 
-    <!-- ✅ Notification Bar -->
-    <div id="notificationBar" class="notification" style="display:none;">
+    <div id="notificationBar" class="notification is-hidden">
       ⚡ Proactive Alert: We noticed you might need extra help!
     </div>
 
-    <!-- Live transcript -->
-    <div id="liveTranscript" class="transcript"></div>
+    <div id="liveTranscript" class="live-transcript"></div>
 
-    <!-- Messages -->
-    <div class="chat-messages" id="messages"></div>
+    <div id="messages" class="chat-messages"></div>
 
-    <!-- Chat Input -->
-    <div class="chat-input">
-      <input 
-        type="text" 
-        id="userInput" 
-        placeholder="Type your message..." 
-        spellcheck="true">
-      
-      <input 
-        type="file" 
-        id="imageUpload" 
-        accept="image/*" 
-        hidden>
-
-      <button id="micBtn" class="icon-btn" aria-label="Voice Input">
-        🎤
+    <footer class="chat-input">
+      <input type="text" id="userInput" class="chat-input__text" placeholder="Type your message..." spellcheck="true">
+      <input type="file" id="imageUpload" class="chat-input__file">
+      <button id="micBtn" class="icon-btn chat-input__btn" aria-label="Start Voice Input">
+        <i class="material-icons">mic</i>
         <div id="micWave" class="wave"></div>
       </button>
-      <button id="imgBtn" class="icon-btn" aria-label="Upload Image">📷</button>
-      <button id="sendBtn" class="icon-btn send-btn" aria-label="Send Message">➤</button>
-    </div>
-  </div>
+      <label for="imageUpload" id="imgBtn" class="icon-btn chat-input__btn" aria-label="Upload Image">
+        <i class="material-icons">photo_camera</i>
+      </label>
+      <button id="sendBtn" class="icon-btn chat-input__btn--send" aria-label="Send Message">
+        <i class="material-icons">send</i>
+      </button>
+    </footer>
+  </main>
 
-  <!-- ✅ Scripts order matters -->
-  <script src="logger.js"></script>   <!-- Admin log helper -->
-  <script src="script.js"></script>   <!-- Main chatbot logic -->
+  <script src="js/logger.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>

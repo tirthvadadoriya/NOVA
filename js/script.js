@@ -23,6 +23,8 @@ const voiceToggle = document.getElementById("voiceToggle");
 const micBtn = document.getElementById("micBtn");
 const micWave = document.getElementById("micWave");
 const liveTranscript = document.getElementById("liveTranscript");
+const splash = document.getElementById("splash");
+const chatApp = document.getElementById("chatApp");
 
 // Replace with your own keys (keep server-side in production)
 const GOOGLE_CLIENT_ID = "58005689001-8gbri4rvbc2ho0snaolahd29ruqpm1e0.apps.googleusercontent.com";
@@ -34,15 +36,15 @@ const WEATHER_API_KEY = "d5a0864ee3be965dfeaa1548bd28d73b"; // <<< REPLACE WITH 
 
 let uploadedImage = null;
 let isVoiceOn = true;
-let USER_LOGO = "https://i.pravatar.cc/35?u=guest"; // Default user avatar
+let USER_LOGO = "images/user.png"; // Default user avatar
 
 // ---------------------- NOTIFICATION ----------------------
 function showNotification(text) {
   const bar = document.getElementById("notificationBar");
   if (!bar) return;
   bar.innerText = text;
-  bar.style.display = "block";
-  setTimeout(() => { bar.style.display = "none"; }, 5000);
+  bar.classList.remove("is-hidden");
+  setTimeout(() => { bar.classList.add("is-hidden"); }, 5000);
 }
 
 // ---------------------- SENTIMENT ----------------------
@@ -74,7 +76,7 @@ function addMessage(content, sender, img = null) {
 
   const avatar = document.createElement("img");
   avatar.className = "avatar";
-  avatar.src = sender === "ai" ? "ai.jpg" : USER_LOGO;
+  avatar.src = sender === "ai" ? "images/NOVA AI.png" : USER_LOGO;
   if (sender === "ai") msgDiv.appendChild(avatar);
 
   const bubble = document.createElement("div");
@@ -108,7 +110,7 @@ function showTypingIndicator() {
   typingDiv.classList.add("message", "ai-message");
   typingDiv.id = "typingIndicator";
   typingDiv.innerHTML = `
-    <img class="avatar" src="ai.jpg" alt="AI">
+    <img class="avatar" src="images/NOVA AI.png" alt="AI">
     <div class="message-bubble ai-bubble typing">
       <span>AI is typing</span>
       <div class="dots"><span></span><span></span><span></span></div>
@@ -138,7 +140,7 @@ async function typeWriterEffect(text) {
     msgDiv.classList.add("message", "ai-message");
     const avatar = document.createElement("img");
     avatar.className = "avatar";
-    avatar.src = "ai.jpg";
+    avatar.src = "images/NOVA AI.png";
     msgDiv.appendChild(avatar);
     const bubble = document.createElement("div");
     bubble.classList.add("message-bubble", "ai-bubble");
@@ -330,7 +332,7 @@ imgUpload?.addEventListener("change", (e) => {
 
 voiceToggle?.addEventListener("click", () => {
   isVoiceOn = !isVoiceOn;
-  voiceToggle.textContent = isVoiceOn ? "🔊" : "🔇";
+  voiceToggle.querySelector(".material-icons").innerText = isVoiceOn ? "volume_up" : "volume_off";
   voiceToggle.classList.toggle("off", !isVoiceOn);
 });
 
@@ -389,14 +391,15 @@ micBtn?.addEventListener("click", () => {
 const themeToggle = document.getElementById("themeToggle");
 themeToggle?.addEventListener("click", () => {
   document.body.classList.toggle("light-theme");
-  themeToggle.textContent = document.body.classList.contains("light-theme") ? "☀️" : "🌙";
-  localStorage.setItem("theme", document.body.classList.contains("light-theme") ? "light" : "dark");
+  const isLight = document.body.classList.contains("light-theme");
+  themeToggle.querySelector(".material-icons").innerText = isLight ? "dark_mode" : "brightness_4";
+  localStorage.setItem("theme", isLight ? "light" : "dark");
 });
 window.addEventListener("load", () => {
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme === "light") {
     document.body.classList.add("light-theme");
-    if (themeToggle) themeToggle.textContent = "☀️";
+    if (themeToggle) themeToggle.querySelector(".material-icons").innerText = "dark_mode";
   }
 });
 
@@ -431,8 +434,8 @@ function handleCredentialResponse(response) {
   if (!user) return;
   document.getElementById("status").textContent = `Hi, ${user.name}`;
   USER_LOGO = user.picture || USER_LOGO;
-  document.getElementById("googleSignIn").style.display = "none";
-  document.getElementById("logoutBtn").style.display = "inline-block";
+  document.getElementById("googleSignIn").classList.add("is-hidden");
+  document.getElementById("logoutBtn").classList.remove("is-hidden");
   localStorage.setItem("googleUser", JSON.stringify(user));
   addMessage(`Welcome ${user.name}! 👋`, "ai");
 }
@@ -443,37 +446,58 @@ function restoreGoogleUser() {
     const user = JSON.parse(raw);
     document.getElementById("status").textContent = `Hi, ${user.name}`;
     USER_LOGO = user.picture || USER_LOGO;
-    document.getElementById("googleSignIn").style.display = "none";
-    document.getElementById("logoutBtn").style.display = "inline-block";
+    document.getElementById("googleSignIn").classList.add("is-hidden");
+    document.getElementById("logoutBtn").classList.remove("is-hidden");
   } catch (e) { console.warn(e); }
 }
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
   localStorage.removeItem("googleUser");
   document.getElementById("status").textContent = "Online";
-  USER_LOGO = "https://i.pravatar.cc/35?u=guest";
-  document.getElementById("logoutBtn").style.display = "none";
-  document.getElementById("googleSignIn").style.display = "inline-block";
+  USER_LOGO = "images/user.png";
+  document.getElementById("logoutBtn").classList.add("is-hidden");
+  document.getElementById("googleSignIn").classList.remove("is-hidden");
   try { google.accounts.id.disableAutoSelect(); } catch(e){}
 });
 
 // ---------------------- Splash behaviour ----------------------
 window.addEventListener("load", () => {
   setTimeout(() => {
-    const splash = document.getElementById("splash");
     if (splash) {
-      splash.classList.add("hidden");
-      setTimeout(() => {
-        splash.style.display = "none";
-        const app = document.getElementById("chatApp");
-        if (app) app.style.display = "flex";
-        restoreGoogleUser();
-        initGoogle();
-      }, 600);
+      splash.classList.add("is-hidden");
+      if (chatApp) chatApp.classList.remove("is-hidden");
+      restoreGoogleUser();
+      initGoogle();
     } else {
-      const app = document.getElementById("chatApp");
-      if (app) app.style.display = "flex";
+      if (chatApp) chatApp.classList.remove("is-hidden");
       restoreGoogleUser();
       initGoogle();
     }
   }, 1200);
 });
+
+// ---------------------- UI Effects ----------------------
+function createRipple(event) {
+  const button = event.currentTarget;
+
+  const circle = document.createElement("span");
+  const diameter = Math.max(button.clientWidth, button.clientHeight);
+  const radius = diameter / 2;
+
+  circle.style.width = circle.style.height = `${diameter}px`;
+  circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+  circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+  circle.classList.add("ripple");
+
+  const ripple = button.getElementsByClassName("ripple")[0];
+
+  if (ripple) {
+    ripple.remove();
+  }
+
+  button.appendChild(circle);
+}
+
+const buttons = document.getElementsByTagName("button");
+for (const button of buttons) {
+  button.addEventListener("click", createRipple);
+}

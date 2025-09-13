@@ -1,0 +1,357 @@
+/* ================= FONTS & M3 ROOT VARIABLES ================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* M3 Color Palette - Dark Mode */
+  --m3-primary: #E6D9C2;
+  --m3-on-primary: #3A3A3A;
+  --m3-primary-container: rgba(230, 217, 194, 0.2);
+  --m3-on-primary-container: #E6D9C2;
+  --m3-surface: #1A1A1A;
+  --m3-on-surface: #E6D9C2;
+  --m3-surface-variant: #2C2C2C;
+  --m3-on-surface-variant: #B3A997;
+  --m3-outline: rgba(230, 217, 194, 0.5);
+  --m3-danger: hsl(6, 70%, 60%);
+  --m3-ripple-color: rgba(230, 217, 194, 0.1);
+
+  /* Transitions & Animations */
+  --transition-speed-fast: 0.2s;
+  --transition-speed-med: 0.4s;
+  --transition-speed-slow: 0.6s;
+
+  /* Font */
+  --font-primary: "Inter", sans-serif;
+}
+
+/* ================= BASE & HELPER CLASSES ================= */
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  background-color: var(--m3-surface);
+  color: var(--m3-on-surface);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  transition: background-color var(--transition-speed-med), color var(--transition-speed-med);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+/* ================= SPLASH ================= */
+.splash {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  height: 100vh;
+  text-align: center;
+  animation: fadeIn var(--transition-speed-slow) ease-in-out;
+  z-index: 10;
+}
+.splash img {
+  width: 120px;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 25px var(--m3-primary));
+}
+
+/* ================= CHAT WINDOW ================= */
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--m3-surface);
+  overflow: hidden;
+  animation: fadeUp var(--transition-speed-slow) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ================= HEADER ================= */
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: var(--m3-surface-variant);
+  border-bottom: 1px solid var(--m3-outline);
+  flex-shrink: 0;
+}
+.chat-header__logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+.chat-header__title h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.chat-header__title p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--m3-on-surface-variant);
+}
+.chat-header__controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================= M3 COMPONENTS ================= */
+
+/* Language Selector */
+.language-selector select {
+  background-color: var(--m3-surface-variant);
+  color: var(--m3-on-surface-variant);
+  border: 1px solid var(--m3-outline);
+  border-radius: 16px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+/* Icon Button */
+.icon-btn {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--m3-on-surface-variant);
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-speed-fast);
+}
+.icon-btn:hover {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+}
+
+/* Text Input */
+.chat-input__text {
+  flex: 1;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 28px;
+  outline: none;
+  font-size: 1rem;
+  background-color: var(--m3-surface-variant);
+  color: var(--m3-on-surface);
+  transition: all var(--transition-speed-fast) ease;
+}
+.chat-input__text::placeholder {
+  color: var(--m3-on-surface-variant);
+}
+
+/* Send Button (Filled Tonal) */
+.chat-input__btn--send {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+}
+.chat-input__btn--send:hover {
+  filter: brightness(1.1);
+}
+
+/* Focus States */
+.icon-btn:focus-visible, 
+.chat-input__text:focus, 
+.language-selector select:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: 2px;
+}
+
+/* Ripple Effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 600ms linear;
+  background-color: var(--m3-ripple-color);
+}
+
+/* ================= MESSAGES & CUSTOM SCROLLBAR ================= */
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--m3-outline);
+  border-radius: 4px;
+}
+
+/* Message Bubbles (Cards) */
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  animation: slideInFade 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 14px 18px;
+  font-size: 1rem;
+  line-height: 1.6;
+  word-break: break-word;
+  white-space: pre-wrap;
+  border-radius: 18px;
+}
+
+.user-message {
+  justify-content: flex-end;
+}
+
+.user-bubble {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  border-radius: 18px 18px 4px 18px;
+}
+
+.ai-bubble {
+  background-color: var(--m3-surface-variant);
+  color: var(--m3-on-surface-variant);
+  border-radius: 18px 18px 18px 4px;
+}
+
+/* ================= AVATARS ================= */
+.message .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--m3-outline);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform var(--transition-speed-fast) ease;
+}
+
+.message .avatar:hover {
+  transform: scale(1.1);
+}
+
+.ai-message .avatar {
+  position: relative;
+}
+
+.ai-message .avatar::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #4CAF50; /* Green for online */
+  border: 2px solid var(--m3-surface);
+}
+
+/* ================= INPUT AREA ================= */
+.chat-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--m3-outline);
+}
+
+.chat-input__file {
+  width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1;
+}
+
+/* ================= TYPING INDICATOR ================= */
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-bubble.typing {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.dots span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+  background: var(--m3-on-surface-variant);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dots span:nth-child(1) { animation-delay: -0.32s; }
+.dots span:nth-child(2) { animation-delay: -0.16s; }
+
+/* ================= LIGHT THEME ================= */
+body.light-theme {
+  --m3-primary: #8C6B4A;
+  --m3-on-primary: #FFFFFF;
+  --m3-primary-container: rgba(140, 107, 74, 0.2);
+  --m3-on-primary-container: #3A3A3A;
+  --m3-surface: #E6D9C2;
+  --m3-on-surface: #3A3A3A;
+  --m3-surface-variant: #D9C8B4;
+  --m3-on-surface-variant: #6F5B40;
+  --m3-outline: rgba(58, 58, 58, 0.5);
+  --m3-ripple-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFade {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.03);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { 
+    transform: scale(0);
+  } 40% { 
+    transform: scale(1.0);
+  }
+}
